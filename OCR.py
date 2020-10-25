@@ -20,12 +20,12 @@ def reorder(myPoints):
     diff = np.diff(myPoints, axis=1)
     myPointsNew[1] = myPoints[np.argmin(diff)]
     myPointsNew[2] = myPoints[np.argmax(diff)]
-
     return myPointsNew
 
 
 img = cv2.imread(r"C:\Users\Admin\Desktop\xulyanh\BienSoXe\vd2.jpg")
 cv2.useOptimized()
+img = cv2.addWeighted(img, 1.2, np.zeros(img.shape, img.dtype), -0.5, 0)
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 cv2.imshow('HINH ANH GOC', img)
 thresh = cv2.Canny(gray, 20, 200)
