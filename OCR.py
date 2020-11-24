@@ -22,9 +22,10 @@ def reorder(myPoints):
     myPointsNew[2] = myPoints[np.argmax(diff)]
     return myPointsNew
 
-
-img = cv2.imread(r"C:\Users\Admin\Desktop\xulyanh\BienSoXe\vd2.jpg")
 cv2.useOptimized()
+img = cv2.imread("BienSoXe.png")
+scale = 1000 / img.shape[1]
+img = cv2.resize(img, (int(scale * img.shape[1]), int(scale * img.shape[0])))
 img = cv2.addWeighted(img, 1.2, np.zeros(img.shape, img.dtype), -0.5, 0)
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 cv2.imshow('HINH ANH GOC', img)
@@ -65,18 +66,36 @@ if largest_rectangle != [0, 0]:
 
     # -----------------------------------------------------
 
-    pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe"
+    pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
     gray = cv2.cvtColor(imgWarpColored, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (3, 3), 0)
-    thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+    thresh = cv2.threshold(blur, 128, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
     opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=1)
     invert = 255 - opening
-    cv2.imshow('Bien So', invert)
     data = pytesseract.image_to_string(invert, lang='eng', config='--oem 1 --psm 6')
     print('THONG TIN NHAN DIEN: ', data)
 else:
-    print('Khong nhan dien duoc hinh hop nao lon ca')
+    numberPlateCascade = cv2.CascadeClassifier("haarcascade_russian_plate_number.xml")
+
+    numberPlate = numberPlateCascade.detectMultiScale(img, scaleFactor=1.05, minNeighbors=20)
+    for (x, y, w, h) in numberPlate:
+        cv2.rectangle(img, (x, y), (x + w, y + h), 255, 2)
+        img_crop = img[y:y + h, x:x + w]
+        scale = 300 / img_crop.shape[1]
+        imgWarpColored = cv2.resize(img_crop,
+                                    (int(img_crop.shape[1] * scale), int(img_crop.shape[0] * scale)))
+        pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+        gray = cv2.cvtColor(imgWarpColored, cv2.COLOR_BGR2GRAY)
+        blur = cv2.GaussianBlur(gray, (3, 3), 0)
+        thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+        opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=1)
+        closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel)
+        invert = 255 - closing
+        cv2.imshow('Bien So', invert)
+        data = pytesseract.image_to_string(invert, lang='eng', config='--oem 1 --psm 6')
+        print('THONG TIN NHAN DIEN: ', data)
 
 cv2.waitKey()
 cv2.destroyAllWindows()
