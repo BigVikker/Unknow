@@ -33,12 +33,18 @@ def reorder(myPoints):
     return myPointsNew
 numberCorrectOCR = 0
 OCR80 = 0
-def check(data, template):
+OCR80FromCas = 0
+numberCorrectOCR_fromCas = 0
+def check(data, template, flags):
     data = plateCharacter(data)
     template = plateCharacter(template)
     if data == template:
         global numberCorrectOCR
         numberCorrectOCR += 1
+        if flags == True:
+            global numberCorrectOCR_fromCas
+            numberCorrectOCR_fromCas += 1
+
     count = 0
     for i in template:
         if data.find(i) == -1:
@@ -47,6 +53,9 @@ def check(data, template):
     if (count / len(template)) >= 0.75:
         global OCR80
         OCR80 += 1
+        if flags == True:
+            global OCR80FromCas
+            OCR80FromCas += 1
 
 numberOfCasDect = 0
 sumImgCanRead = 0
@@ -95,7 +104,7 @@ for i in range(0, len(listFileName)):
         #cv2.imshow('Bien So', invert)
         config = r'--oem 1 --psm 7 outputbase'
         data = pytesseract.image_to_string(invert, lang='eng', config=config)
-        check(data, listOfResult[i])
+        check(data, listOfResult[i], True)
     if len(numberPlate) == 0:
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         thresh = cv2.Canny(gray, 20, 200)
@@ -150,7 +159,7 @@ for i in range(0, len(listFileName)):
             #cv2.imshow('palete number ', thresh)
             config = r'--oem 1 --psm 7 outputbase'
             data = pytesseract.image_to_string(invert, lang='eng', config=config)
-            check(data, listOfResult[i])
+            check(data, listOfResult[i], flags= False)
 
 
 
@@ -158,50 +167,29 @@ for i in range(0, len(listFileName)):
     #cv2.waitKey()
     cv2.destroyAllWindows()
 
-# x-coordinates of left sides of bars
-left = [1, 2, 3, 4, 5]
 
-# heights of bars
-height = [sumImgCanRead, sumImgHaveROI, numberOfCasDect, OCR80, numberCorrectOCR]
+Cas = (sumImgCanRead, numberOfCasDect, OCR80FromCas, numberCorrectOCR_fromCas)
+noCas = (0, (sumImgHaveROI - numberOfCasDect), (OCR80 - OCR80FromCas), (numberCorrectOCR - numberCorrectOCR_fromCas))
+CasStd = (2, 3, 4, 1)
+noCasStd = (3, 5, 2, 3)
+ind = np.arange(4)    # the x locations for the groups
+width = 0.35       # the width of the bars: can also be len(x) sequence
 
-# labels for bars
-tick_label = ['Số ảnh ', 'ROI', 'Casecade', 'OCR 80%', 'OCR 100%']
+p1 = plt.bar(ind, Cas, width, yerr=CasStd)
+p2 = plt.bar(ind, noCas, width,
+             bottom=Cas, yerr=noCasStd)
+x = [0, 1, 2, 3]
+y = [sumImgCanRead, sumImgHaveROI, OCR80, numberCorrectOCR]
+plt.plot(x, y, color='green', linestyle='dashed', linewidth = 3,
+         marker='o', markerfacecolor='blue', markersize=12)
+plt.ylabel('Images')
+plt.xlabel('Correct Images')
+plt.xticks(ind, ('Tổ số ảnh', 'ROI', '75%', '100%'))
+plt.yticks(np.arange(0, sumImgCanRead + 20, 5))
+plt.legend((p1[0], p2[0]), ('số ảnh Cas', 'số ảnh no Cas'))
 
-# plotting a bar chartna
-plt.bar(left, height, tick_label=tick_label,
-        width=0.8, color=['red', 'orange', 'blue', 'purple', 'green'])
-
-# naming the x-axis
-plt.xlabel('x - axis')
-# naming the y-axis
-plt.ylabel('số lượng ảnh chính xác')
-# plot title
-
-# x axis values
-x = [1, 2, 3, 4, 5]
-# corresponding y axis values
-y = [sumImgCanRead, sumImgHaveROI, numberOfCasDect, OCR80, numberCorrectOCR]
-
-# plotting the points
-plt.plot(x, y, color='yellow', linestyle='dashed', linewidth=3,
-         marker='o', markerfacecolor='blue', markersize=5)
-
-# setting x and y axis range
-plt.ylim(0, 110)
-plt.xlim(0, 6)
-
-# naming the x axis
-plt.xlabel('x - axis')
-# naming the y axis
-plt.ylabel('y - axis')
-
-# giving a title to my graph
-plt.title('Biểu đồ nhận diện biển số xe')
-
-# function to show the plot
 plt.show()
-
 # function to show the plot
-plt.show()
+
 cv2.waitKey()
 cv2.destroyAllWindows()
