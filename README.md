@@ -55,4 +55,20 @@
  - With IOU = 0.5, set model scaleFactors(multiScale) = 1.05 (5%)<br/>
    Recall: 35% , TP = 38 and sum = 108<br/>
    Predection: 17.35% , TP = 38 and FP = 181<br/>
+<h3> 4. Number-Plate-cars detect combine detect text by OCR </h3>
+<div>
+<h4> This show data Recall
+<img src="data/graph.png" />
+</div>
+
+<div>
+<h4> This show data Recall of OCR via tesseract
+<img src="data/graph2.png" />
+</div>
+
+<div>
+<h4> This show data Recall of special conditions and add more funtions in code
+<img src="data/graph3.png" />
+</div>
+
 </html>
