@@ -7,6 +7,7 @@ import time
 import matplotlib.pyplot as plt
 
 
+
 def length2PtsPixels(x, y, x1, y1):
     return math.sqrt((math.pow(x - x1, 2)) + (math.pow(y - y1, 2)))
 
@@ -36,11 +37,12 @@ def check(data, template, flags):
     data = plateCharacter(data)
     template = plateCharacter(template)
     if data == template:
-        global numberCorrectOCR
-        numberCorrectOCR += 1
         if flags == True:
-            global numberCorrectOCR_fromCas
-            numberCorrectOCR_fromCas += 1
+            global OCR100ImagesCas
+            OCR100ImagesCas += 1
+        else:
+            global OCR100ImagesNoCas
+            OCR100ImagesNoCas += 1
 
     count = 0
     for i in template:
@@ -48,11 +50,12 @@ def check(data, template, flags):
             count += 1
             continue
     if (count / len(template)) >= 0.75:
-        global OCR80
-        OCR80 += 1
         if flags == True:
-            global OCR80FromCas
-            OCR80FromCas += 1
+            global OCR80ImagesCas
+            OCR80ImagesCas += 1
+        else:
+            global OCR80ImagesNoCas
+            OCR80ImagesNoCas += 1
 
 
 
@@ -71,44 +74,33 @@ for filename in os.listdir(directory):
         listFileName.append(filename)
 listFileName.sort()
 
-OCRImages = 0
-OCR80Images = 0
-OCR80Images_fromCas = 0
-OCRImages_froCas = 0
-gausionsDilate = 3
-if gausionsDilate == 3:
-    numberCorrectOCR = 0
-    OCR80 = 0
-    OCR80FromCas = 0
-    numberCorrectOCR_fromCas = 0
-    numberOfCasDect = 0
-    sumImgCanRead = 0
-    sumImgHaveROI = 0
+OCR80ImagesNoCas = 0
+OCR80ImagesCas = 0
+OCR100ImagesNoCas = 0
+OCR100ImagesCas = 0
+
+sumImgHaveROI = 0
+sumImgCanRead = 0
+numberOfCasDect = 0
+if numberOfCasDect == 0:
     for i in range(0, len(listFileName)):
         cv2.useOptimized()
         sumImgCanRead += 1
         img = cv2.imread(os.path.join(directory, listFileName[i]))
-        if img.shape[1] < 300:
-            scale = 600 / img.shape[1]
-            img = cv2.resize(img, (int(scale * img.shape[1]), int(scale * img.shape[0])))
         img = cv2.addWeighted(img, 1.2, np.zeros(img.shape, img.dtype), -0.5, 0)
-
         numberPlateCascade = cv2.CascadeClassifier("haarcascade_russian_plate_number.xml")
         numberPlate = numberPlateCascade.detectMultiScale(img, scaleFactor=1.05, minNeighbors=20)
-        if len(numberPlate) != 0:
-            sumImgHaveROI += 1
-            numberOfCasDect += 1
         for (x, y, w, h) in numberPlate:
             cv2.rectangle(img, (x, y), (x + w, y + h), 255, 2)
             img_crop = img[y:y + h, x:x + w]
-            scale = 400 / img_crop.shape[1]
+            scale = 200 / img_crop.shape[1]
             imgWarpColored = cv2.resize(img_crop,
                                         (int(img_crop.shape[1] * scale), int(img_crop.shape[0] * scale)))
             pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
             gray = cv2.cvtColor(imgWarpColored, cv2.COLOR_BGR2GRAY)
             # blur = cv2.GaussianBlur(gray, (3, 3), 0)
             thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
-            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (gausionsDilate, gausionsDilate))
+            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
             opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=1)
             # closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel)
             invert = 255 - opening
@@ -116,22 +108,27 @@ if gausionsDilate == 3:
             config = r'--oem 1 --psm 7 outputbase'
             data = pytesseract.image_to_string(invert, lang='eng', config=config)
             check(data, listOfResult[i], True)
-        if len(numberPlate) == 0:
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            thresh = cv2.Canny(gray, 20, 200)
-            contours, h = cv2.findContours(thresh, 1, 2)
-            largest_rectangle = [0, 0]
+        if len(numberPlate) != 0:
+            numberOfCasDect += 1
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        thresh = cv2.Canny(gray, 20, 200)
+        contours, h = cv2.findContours(thresh, 1, 2)
+        largest_rectangle = [0, 0]
+        for scale in range(1, 10):
+            tiLe = 0.01
+            tiLe += tiLe * scale
             for cnt in contours:
-                approx = cv2.approxPolyDP(cnt, 0.05 * cv2.arcLength(cnt, True), True)
+                approx = cv2.approxPolyDP(cnt, tiLe * cv2.arcLength(cnt, True), True)
                 if len(approx) == 4:
                     area = cv2.contourArea(cnt)
                     if area > largest_rectangle[0] and area >= img.shape[1] * img.shape[0] * 0.01 and area <= img.shape[
                         1] * \
                             img.shape[0] * 0.9:
                         largest_rectangle = [cv2.contourArea(cnt), cnt, approx]
+                    if largest_rectangle != [0, 0]:
+                        sumImgHaveROI += 1
+                        break
             if largest_rectangle != [0, 0]:
-                sumImgHaveROI += 1
-                # minumBox bounding
                 rect = cv2.minAreaRect(largest_rectangle[1])
                 box = cv2.boxPoints(rect)
                 box = np.int0(box)
@@ -155,7 +152,8 @@ if gausionsDilate == 3:
                 # scale = 1
                 imgWarpColored = cv2.resize(imgWarpColored,
                                             (
-                                            int(imgWarpColored.shape[1] * scale), int(imgWarpColored.shape[0] * scale)))
+                                                int(imgWarpColored.shape[1] * scale),
+                                                int(imgWarpColored.shape[0] * scale)))
 
                 cv2.drawContours(img, [box], 0, (0, 255, 0), 2)
                 # cv2.imshow('DANH DAU DOI TUONG', img)
@@ -167,7 +165,7 @@ if gausionsDilate == 3:
                 gray = cv2.cvtColor(imgWarpColored, cv2.COLOR_BGR2GRAY)
                 # blur = cv2.GaussianBlur(gray, (3, 3), 0)
                 thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
-                kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (gausionsDilate, gausionsDilate))
+                kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
                 opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=1)
 
                 invert = 255 - opening
@@ -175,40 +173,37 @@ if gausionsDilate == 3:
                 config = r'--oem 1 --psm 7 outputbase'
                 data = pytesseract.image_to_string(invert, lang='eng', config=config)
                 check(data, listOfResult[i], flags=False)
+                break
+
+
+        #    dectecCharacter(img, largest_rectangle)
         cv2.destroyAllWindows()
-    if numberCorrectOCR > OCRImages:
-        OCRImages = numberCorrectOCR
-    if numberCorrectOCR_fromCas > OCRImages_froCas:
-        OCRImages_froCas = numberCorrectOCR_fromCas
-    if OCR80 > OCR80Images:
-        OCR80Images = OCR80
-    if OCR80FromCas > OCR80Images_fromCas:
-        OCR80Images_fromCas = OCR80FromCas
 
-print( "Tong so anh nhan duoc " + str(sumImgHaveROI) + "   80%" + str(OCR80Images) + "  80% cas " + str(OCR80Images_fromCas))
-print("CascasenhanNhan: "+ str(numberOfCasDect) +"  100%" + str(OCRImages) + "  80% cas " + str(OCRImages_froCas))
-Cas = (sumImgCanRead, numberOfCasDect, OCR80Images_fromCas, OCRImages_froCas)
-noCas = (0, (sumImgHaveROI - numberOfCasDect), (OCR80Images - OCR80Images_fromCas), (OCRImages - OCRImages_froCas))
-CasStd = (2, 3, 4, 1)
-noCasStd = (3, 5, 2, 3)
-ind = np.arange(4)    # the x locations for the groups
-width = 0.35       # the width of the bars: can also be len(x) sequence
 
-p1 = plt.bar(ind, Cas, width, yerr=CasStd)
-p2 = plt.bar(ind, noCas, width,
-             bottom=Cas, yerr=noCasStd)
-x = [0, 1, 2, 3]
-y = [sumImgCanRead, sumImgHaveROI, OCR80Images, OCRImages]
-plt.plot(x, y, color='green', linestyle='dashed', linewidth = 3,
-         marker='o', markerfacecolor='blue', markersize=12)
-plt.ylabel('Images')
-plt.xlabel('Correct Images')
-plt.xticks(ind, ('Tổ số ảnh', 'ROI', '75%', '100%'))
-plt.yticks(np.arange(0, sumImgCanRead + 20, 5))
-plt.legend((p1[0], p2[0]), ('số ảnh Cas', 'số ảnh no Cas'))
+print('image can read with 4 conner', sumImgHaveROI)
+print('image read casecade', numberOfCasDect)
 
-plt.show()
+# x-coordinates of left sides of bars
+left = [1, 2, 3, 4, 5, 6]
+
+# heights of bars
+height = [sumImgHaveROI, numberOfCasDect, OCR80ImagesNoCas, OCR80ImagesCas, OCR100ImagesNoCas, OCR100ImagesCas]
+
+# labels for bars
+tick_label = ['No Cas', 'Cas', '80', '80 Cas', '100', '100 Cas']
+
+# plotting a bar chart
+plt.bar(left, height, tick_label=tick_label,
+        width=0.8, color=['orange', 'blue'])
+
+# naming the x-axis
+plt.xlabel('x - axis')
+# naming the y-axis
+plt.ylabel('y - axis')
+# plot title
+plt.title('My bar chart!')
+
 # function to show the plot
-
+plt.show()
 cv2.waitKey()
 cv2.destroyAllWindows()
