@@ -1,3 +1,4 @@
+<html>
 i use custom HaarCasscade to train my model at this address "https://www.cs.auckland.ac.nz/~m.rezaei/Tutorials/Creating_a_Cascade_of_Haar-Like_Classifiers_Step_by_Step.pdf"
 
 
@@ -42,3 +43,4 @@ i use custom HaarCasscade to train my model at this address "https://www.cs.auck
  + with IOU = 0.5, set model scaleFactors(multiScale) = 1.05 (5%)
    Recall: 35% , TP = 38 and sum = 108
    Predection: 17.35% , TP = 38 and FP = 181
+</html>
