@@ -1,5 +1,8 @@
 <html>
-i use custom HaarCasscade to train my model at this address "https://www.cs.auckland.ac.nz/~m.rezaei/Tutorials/Creating_a_Cascade_of_Haar-Like_Classifiers_Step_by_Step.pdf"
+<center>
+ <strong>i use custom HaarCasscade to train my model at this address "https://www.cs.auckland.ac.nz/~m.rezaei/Tutorials/Creating_a_Cascade_of_Haar-Like_Classifiers_Step_by_Step.pdf"
+ </strong>
+</center>
 
 
 1.Faces detect
