@@ -56,6 +56,8 @@
    Recall: 35% , TP = 38 and sum = 108<br/>
    Predection: 17.35% , TP = 38 and FP = 181<br/>
 <h3> 4. Number-Plate-cars detect combine detect text by OCR </h3>
+OCR-75% or 75% that mean OCR read correct 75%
+OCR or 100% that mean OCR read correct 100%
 <div>
  <center><h4> This show data Recall </h4>
 <img src="data/graph.png" />
