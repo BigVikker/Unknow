@@ -8,7 +8,7 @@
 
 
 <h3>1.Faces detect</h3>
-- my model with 35 images positive, 400 images negative (i dont have data and my computer not strong to train)
+- my model with 35 images positive, 400 images negative (i dont have data and my computer not strong to train)<br/>
 - Evaluation model (work on data set :(( )
   <br/>
   with IOU = 0.5, set model scaleFactors(multiScale) = 1.01 (1%)
@@ -27,7 +27,7 @@
 
 
 <h3>2. Number-Plate-motobike detect (private)</h3>
-- my model with 200 positive, 400 images negative (special condition) 
+- my model with 200 positive, 400 images negative (special condition) <br/>
 - Evaluation model (work on data set :(( )
 
 <br/>
