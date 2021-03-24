@@ -63,13 +63,13 @@
 </div>
 
 <div>
-<center><h4> This show data Recall of OCR via tesseract
+<center><h4> This show data Recall of OCR via tesseract</h4>
 <img src="data/graph2.png" /></center>
 </div>
 
 <div>
  <center>
-<h4> This show data Recall of special conditions and add more funtions in code
+  <h4> This show data Recall of special conditions and add more funtions in code</h4>
 <img src="data/graph3.png" />
 </center>
 </div>
