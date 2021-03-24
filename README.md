@@ -57,18 +57,21 @@
    Predection: 17.35% , TP = 38 and FP = 181<br/>
 <h3> 4. Number-Plate-cars detect combine detect text by OCR </h3>
 <div>
-<h4> This show data Recall
+ <center><h4> This show data Recall </h4>
 <img src="data/graph.png" />
+ </center>
 </div>
 
 <div>
-<h4> This show data Recall of OCR via tesseract
-<img src="data/graph2.png" />
+<center><h4> This show data Recall of OCR via tesseract
+<img src="data/graph2.png" /></center>
 </div>
 
 <div>
+ <center>
 <h4> This show data Recall of special conditions and add more funtions in code
 <img src="data/graph3.png" />
+</center>
 </div>
 
 </html>
